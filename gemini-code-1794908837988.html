@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papa & Son Field Operations - Secure Vault</title>
+    <style>
+        :root {
+            --bg-dark: #12141a;
+            --card-bg: #1c212b;
+            --accent-gold: #f39c12;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --text-main: #ecf0f1;
+            --text-muted: #95a5a6;
+        }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed var(--accent-gold);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+        }
+        .header p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .progress-bar {
+            background: #2c3e50;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: var(--accent-gold);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .tier-badge {
+            display: inline-block;
+            background: rgba(243, 156, 18, 0.2);
+            color: var(--accent-gold);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .question-box {
+            margin-bottom: 20px;
+        }
+        .question-box h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background: #111419;
+            border: 1px solid #4f5b66;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            border-radius: 6px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        input[type="text"]:focus {
+            border-color: var(--accent-gold);
+            outline: none;
+        }
+        .mc-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .mc-btn {
+            background: #252b37;
+            border: 1px solid #4f5b66;
+            color: var(--text-main);
+            padding: 12px;
+            text-align: left;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mc-btn:hover {
+            border-color: var(--accent-gold);
+            background: #2e3644;
+        }
+        .btn-submit {
+            background: var(--accent-gold);
+            color: #12141a;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            font-family: inherit;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+        .nudge-box {
+            background: rgba(241, 196, 15, 0.15);
+            border-left: 4px solid var(--accent-gold);
+            padding: 10px;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            display: none;
+        }
+        .alert-box {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid var(--accent-red);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+            color: #ff6b6b;
+        }
+        .tile-puzzle {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .tile {
+            width: 35px;
+            height: 45px;
+            background: #111419;
+            border: 2px solid #4f5b66;
+            color: #fff;
+            font-size: 1.2rem;
+            font-family: inherit;
+            text-align: center;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .tile:focus {
+            border-color: var(--accent-gold);
+            outline: none;
+        }
+        .tile.locked {
+            background: #2c3e50;
+            color: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+        .reward-box {
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid var(--accent-green);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>PAPA & SON FIELD OPERATIONS</h1>
+        <p>Operative: Nicholas James | Security Level 3</p>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="gameScreen">
+        <div class="tier-badge" id="tierBadge">Tier 1: Warm-Up</div>
+        <div class="question-box" id="questionContent">
+            <!-- Dynamic Question Injected Here -->
+        </div>
+        <div class="nudge-box" id="nudgeBox"></div>
+        <div class="alert-box" id="alertBox"></div>
+        <div class="reward-box" id="rewardBox"></div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            tier: "Tier 1: Warm-Up (Q1)",
+            prompt: "Security Check #1: What is your exact birthday (Month Day, Year)?",
+            type: "text",
+            answer: ["january 18 2012", "jan 18 2012", "1 18 2012", "january 18th 2012"],
+            nudge: "Think about the middle of January in the year 2012...",
+            action: () => triggerAlert(1)
+        },
+        {
+            tier: "Tier 1: Warm-Up (Q2)",
+            prompt: "Security Check #2: What elementary school did you attend in Hopkins?",
+            type: "text",
+            answer: ["alice smith", "alice smith elementary"],
+            nudge: "Named after a famous author/person, starts with A..."
+        },
+        {
+            tier: "Tier 1: Warm-Up (Q3)",
+            prompt: "Security Check #3: What was your favorite animal we focused on the last time we hung out together?",
+            type: "text",
+            answer: ["cat", "cats"],
+            nudge: "Meow! Think of our favorite four-legged furry friends.",
+            reward: "🎁 UNLOCKED: Code Fragment #1 & Photo Archive #1!"
+        },
+        {
+            tier: "Intermission 1 (Q4)",
+            prompt: "Bonus Cat Check #1 (No penalty!): Adult cats almost never meow at other cats. Who did domestic cats actually develop the 'meow' specifically to communicate with?",
+            type: "mc",
+            options: [
+                "A) Dogs and predators as a warning",
+                "B) Humans",
+                "C) Birds while hunting",
+                "D) Themselves when bored"
+            ],
+            answer: 1, // Index 1 (B)
+            intermission: "Right or wrong, you pass! Cats evolved the meow almost exclusively as a language to communicate with humans."
+        },
+        {
+            tier: "Tier 2: Family Filter (Q5)",
+            prompt: "Security Check #4: What was the last major shopping center or mall we were seen at in person?",
+            type: "text",
+            answer: ["eden prairie center", "ep center", "eden prairie mall"],
+            nudge: "Located right off Highway 212 in a neighboring suburb..."
+        },
+        {
+            tier: "Tier 2: Family Filter (Q6)",
+            prompt: "Security Check #5: What was our #1 major purchase together at Scheels?",
+            type: "text",
+            answer: ["lego", "legos", "lego set", "legos set"],
+            nudge: "Little plastic bricks that hurt when you step on them..."
+        },
+        {
+            tier: "Tier 2: Identity Lock (Q7)",
+            prompt: "Security Check #6: What little hidden object hung out on a mall street sign with us for weeks?",
+            type: "text",
+            answer: ["rubber duck", "duck", "rubber ducky"],
+            nudge: "Quack quack! Yellow and made of rubber...",
+            action: () => triggerAlert(2),
+            reward: "🎁 UNLOCKED: Code Fragment #2 & Photo Archive #2! (Geocache Green Light Activated!)"
+        },
+        {
+            tier: "Intermission 2 (Q8)",
+            prompt: "Bonus Cat Check #2 (No penalty!): Roughly 99.9% of all Calico and Tortoiseshell cats share one specific genetic trait. What is it?",
+            type: "mc",
+            options: [
+                "A) They are born with blue eyes",
+                "B) They are female",
+                "C) They lack the gene for purring",
+                "D) They have double-jointed front paws"
+            ],
+            answer: 1, // Index 1 (B)
+            intermission: "Cleared! The gene for orange and black coat colors lives on the X chromosome, so it takes two X chromosomes (XX) to make a calico."
+        },
+        {
+            tier: "Tier 3: The Vault (Q9)",
+            prompt: "Security Check #7: Which school were we standing in front of when the Google Maps camera van drove by?",
+            type: "text",
+            answer: ["alice smith", "alice smith elementary", "my elementary school"],
+            nudge: "Same answer as your Hopkins elementary school from earlier!"
+        },
+        {
+            tier: "Tier 3: The Vault (Q10)",
+            prompt: "Security Check #8: Where was your favorite place to go grab hamburgers with me and Grandma?",
+            type: "mc",
+            options: [
+                "A) Lion's Tap in Eden Prairie",
+                "B) Burger King",
+                "C) Clancy's in Jordan",
+                "D) Cy's in Chaska"
+            ],
+            answer: 0, // Index 0 (A)
+            nudge: "Think famous local burgers..."
+        },
+        {
+            tier: "Tier 3: The Vault Finale (Q11)",
+            prompt: "Final Vault Lock: Fill in the missing middle letters to complete our classic two-word phrase...",
+            type: "tiles",
+            // H _ _ _ A   B _ _ _ A (HUGGA BUGGA)
+            answer: "huggabugga",
+            nudge: "Say it out loud with the 'H' and 'B'—it rhymes, and it's something we used to say all the time!",
+            reward: "🎉 VAULT FULLY UNLOCKED! Code Fragment #3, Video Clip & Geocache Coordinates Dispatched!"
+        }
+    ];
+
+    let currentStep = 0;
+    let attemptsOnThisQuestion = 0;
+
+    function renderQuestion() {
+        const q = questions[currentStep];
+        document.getElementById('tierBadgeinnerText') = q.tier;
+        document.getElementById('tierBadge').innerText = q.tier;
+        document.getElementById('progressFill').style.width = `${((currentStep) / questions.length) * 100}%`;
+        
+        const contentBox = document.getElementById('questionContent');
+        document.getElementById('nudgeBox').style.display = 'none';
+        document.getElementById('alertBox').style.display = 'none';
+        document.getElementById('rewardBox').style.display = 'none';
+
+        let html = `<h3>${q.prompt}</h3>`;
+
+        if (q.type === 'text') {
+            html += `<input type="text" id="userInput" placeholder="Enter security answer..." autocomplete="off">
+                     <button class="btn-submit" onclick="submitAnswer()">Authenticate</button>`;
+        } else if (q.type === 'mc') {
+            html += `<div class="mc-options">`;
+            q.options.forEach((opt, idx) => {
+                html += `<button class="mc-btn" onclick="submitMC(${idx})">${opt}</button>`;
+            });
+            html += `</div>`;
+        } else if (q.type === 'tiles') {
+            html += `
+                <div style="text-align:center;">
+                    <div style="font-size:0.85rem; color:#95a5a6; margin-bottom:10px;">Word 1 (H...A) &nbsp;&nbsp;&nbsp; Word 2 (B...A)</div>
+                    <div class="tile-puzzle">
+                        <input type="text" class="tile locked" value="H" disabled>
+                        <input type="text" class="tile" maxlength="1" id="t1" autocomplete="off">
+                        <input type="text" class="tile" maxlength="1" id="t2" autocomplete="off">
+                        <input type="text" class="tile" maxlength="1" id="t3" autocomplete="off">
+                        <input type="text" class="tile locked" value="A" disabled>
+                        &nbsp;&nbsp;
+                        <input type="text" class="tile locked" value="B" disabled>
+                        <input type="text" class="tile" maxlength="1" id="t4" autocomplete="off">
+                        <input type="text" class="tile" maxlength="1" id="t5" autocomplete="off">
+                        <input type="text" class="tile" maxlength="1" id="t6" autocomplete="off">
+                        <input type="text" class="tile locked" value="A" disabled>
+                    </div>
+                    <button class="btn-submit" onclick="submitTiles()" style="margin-top:15px;">Unlock Vault</button>
+                </div>
+            `;
+        }
+
+        contentBox.innerHTML = html;
+
+        // Trigger action hooks if any (like Alerts)
+        if (q.action) {
+            q.action();
+        }
+    }
+
+    function cleanString(str) {
+        return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function submitAnswer() {
+        const val = document.getElementById('userInput').value;
+        const q = questions[currentStep];
+        const cleanedVal = cleanString(val);
+
+        const isCorrect = q.answer.some(ans => cleanString(ans) === cleanedVal);
+
+        if (isCorrect) {
+            handleCorrect();
+        } else {
+            handleIncorrect(q);
+        }
+    }
+
+    function submitMC(selectedIndex) {
+        const q = questions[currentStep];
+        if (q.intermission) {
+            // Intermission - 0 penalty
+            const alertBox = document.getElementById('alertBox');
+            alertBox.style.display = 'block';
+            alertBox.style.borderColor = 'var(--accent-green)';
+            alertBox.style.background = 'rgba(46, 204, 113, 0.2)';
+            alertBox.style.color = '#2ecc71';
+            alertBox.innerHTML = `<strong>Intermission Passed!</strong><br>${q.intermission}`;
+            setTimeout(() => {
+                currentStep++;
+                attemptsOnThisQuestion = 0;
+                if (currentStep < questions.length) {
+                    renderQuestion();
+                } else {
+                    finishGame();
+                }
+            }, 3000);
+        } else {
+            // Real MC Question (Q10)
+            if (selectedIndex === q.answer) {
+                handleCorrect();
+            } else {
+                handleIncorrect(q);
+            }
+        }
+    }
+
+    function submitTiles() {
+        const t1 = document.getElementById('t1').value;
+        const t2 = document.getElementById('t2').value;
+        const t3 = document.getElementById('t3').value;
+        const t4 = document.getElementById('t4').value;
+        const t5 = document.getElementById('t5').value;
+        const t6 = document.getElementById('t6').value;
+
+        const assembled = "h" + t1 + t2 + t3 + "a" + "b" + t4 + t5 + t6 + "a";
+        const q = questions[currentStep];
+
+        if (cleanString(assembled) === q.answer) {
+            handleCorrect();
+        } else {
+            handleIncorrect(q);
+        }
+    }
+
+    function handleCorrect() {
+        attemptsOnThisQuestion = 0;
+        const q = questions[currentStep];
+        
+        if (q.reward) {
+            const rewardBox = document.getElementById('rewardBox');
+            rewardBox.style.display = 'block';
+            rewardBox.innerHTML = `<strong>${q.reward}</strong>`;
+            setTimeout(advanceStep, 3500);
+        } else {
+            advanceStep();
+        }
+    }
+
+    function advanceStep() {
+        currentStep++;
+        if (currentStep < questions.length) {
+            renderQuestion();
+        } else {
+            finishGame();
+        }
+    }
+
+    function handleIncorrect(q) {
+        attemptsOnThisQuestion++;
+        if (attemptsOnThisQuestion === 1) {
+            // First miss: Show Nudge
+            const nudgeBox = document.getElementById('nudgeBox');
+            nudgeBox.style.display = 'block';
+            nudgeBox.innerHTML = `<strong>Hint:</strong> ${q.nudge}`;
+        } else {
+            // Second miss: Custom Reset Lockout
+            const alertBox = document.getElementById('alertBox');
+            alertBox.style.display = 'block';
+            alertBox.innerHTML = `<strong>SECURITY BREACH...</strong> Are you really my bugs? Papa knows you better than that!<br><span style="font-size:0.85rem; color:#aaa;">Resetting to Q1...</span>`;
+            setTimeout(() => {
+                currentStep = 0;
+                attemptsOnThisQuestion = 0;
+                renderQuestion();
+            }, 3500);
+        }
+    }
+
+    function triggerAlert(alertNum) {
+        // Placeholder hook for background SMS / webhook alerts
+        console.log(`[OPERATIONAL TELEMETRY] Fire Alert #${alertNum} triggered.`);
+    }
+
+    function finishGame() {
+        document.getElementById('progressFill').style.width = '100%';
+        document.getElementById('tierBadge').innerText = "MISSION ACCOMPLISHED";
+        document.getElementById('questionContent').innerHTML = `
+            <div style="text-align: center;">
+                <h2 style="color: var(--accent-green);">VAULT UNLOCKED SUCCESSFULLY!</h2>
+                <p>All security protocols verified. Agent Nicholas James has successfully completed Papa & Son Field Operations.</p>
+                <div style="background: #111419; padding: 15px; border-radius: 6px; border: 1px dashed var(--accent-gold); margin-top: 20px; text-align: left;">
+                    <strong>Final Geocache Coordinates:</strong><br>
+                    <span style="color: var(--accent-gold); font-size: 1.1rem;">[ 44.85xx° N, -93.6xx° W ]</span><br><br>
+                    <strong>Final Code Fragment #3:</strong> <span style="color: #2ecc71;">ALPHA-77-BUSS</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Initialize first question on load
+    renderQuestion();
+</script>
+
+</body>
+</html>
